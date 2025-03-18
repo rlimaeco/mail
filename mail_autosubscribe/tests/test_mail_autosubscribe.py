@@ -4,16 +4,15 @@
 
 from odoo_test_helper import FakeModelLoader
 
-from odoo.tests.common import Form, SavepointCase, tagged
+from odoo.tests.common import Form
+
+from odoo.addons.base.tests.common import BaseCommon
 
 
-@tagged("post_install", "-at_install")
-class TestMailAutosubscribe(SavepointCase):
+class TestMailAutosubscribe(BaseCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # Setup env
-        cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))
         # Load fake order model
         cls.loader = FakeModelLoader(cls.env, cls.__module__)
         cls.loader.backup_registry()
@@ -102,17 +101,19 @@ class TestMailAutosubscribe(SavepointCase):
     def test_mail_message_composer(self):
         """Test autosubscribe when using the mail composer"""
         self.assertFalse(self.order.message_partner_ids, "No subscribers yet")
+        breakpoint()
         composer = Form(
             self.env["mail.compose.message"].with_context(
                 default_model="fake.order",
-                default_res_id=self.order.id,
+                default_res_ids=[self.order.id],
                 default_use_template=True,
                 default_template_id=self.mail_template.id,
                 default_composition_mode="comment",
             )
         )
-        composer.save().send_mail()
+        composer.save().action_send_mail()
         message = self.order.message_ids[0]
+        breakpoint()
         self.assertEqual(message.partner_ids, self.partner_2 | self.partner_3)
 
     def test_mail_message_composer_no_autosubscribe_followers(self):
@@ -121,7 +122,7 @@ class TestMailAutosubscribe(SavepointCase):
         composer = Form(
             self.env["mail.compose.message"].with_context(
                 default_model="fake.order",
-                default_res_id=self.order.id,
+                default_res_ids=[self.order.id],
                 default_use_template=True,
                 default_template_id=self.mail_template.id,
                 default_composition_mode="comment",

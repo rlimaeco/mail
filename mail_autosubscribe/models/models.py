@@ -23,6 +23,7 @@ class BaseModel(models.AbstractModel):
     def _message_get_default_recipients(self):
         # Overload to include auto follow document partners in the composer
         # Note: This only works if the template is configured with 'Default recipients'
+        breakpoint()
         res = super()._message_get_default_recipients()
         if self.env.context.get("no_autosubscribe_followers"):
             return res
